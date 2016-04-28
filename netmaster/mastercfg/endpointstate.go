@@ -36,6 +36,7 @@ type CfgEndpointState struct {
 	HomingHost      string `json:"homingHost"`
 	IntfName        string `json:"intfName"`
 	VtepIP          string `json:"vtepIP"`
+	IPv6Address     string `json:"ipv6Address"`
 }
 
 // Write the state.

@@ -61,7 +61,7 @@ func validateEndpointConfig(stateDriver core.StateDriver, tenant *intent.ConfigT
 func allocSetEpAddress(ep *intent.ConfigEP, epCfg *mastercfg.CfgEndpointState,
 	nwCfg *mastercfg.CfgNetworkState) (err error) {
 
-	ipAddress, err := networkAllocAddress(nwCfg, ep.IPAddress)
+	ipAddress, err := networkAllocAddress(nwCfg, ep.IPAddress, false)
 	if err != nil {
 		log.Errorf("Error allocating IP address. Err: %v", err)
 		return

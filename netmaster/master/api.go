@@ -26,6 +26,7 @@ import (
 	"github.com/contiv/netplugin/netmaster/intent"
 	"github.com/contiv/netplugin/netmaster/mastercfg"
 	"github.com/contiv/netplugin/utils"
+	"github.com/contiv/netplugin/utils/netutils"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -103,6 +104,7 @@ func AllocAddressHandler(w http.ResponseWriter, r *http.Request, vars map[string
 		return nil, err
 	}
 
+	isIPv6 := netutils.IsIPv6(allocReq.AddressPool)
 	networkID := ""
 
 	// Determine the network id to use
@@ -126,7 +128,9 @@ func AllocAddressHandler(w http.ResponseWriter, r *http.Request, vars map[string
 
 		for _, ncfg := range netList {
 			nw := ncfg.(*mastercfg.CfgNetworkState)
-			if nw.SubnetIP == subnetIP && fmt.Sprintf("%d", nw.SubnetLen) == subnetLen {
+			if isIPv6 && nw.IPv6Subnet == subnetIP && fmt.Sprintf("%d", nw.IPv6SubnetLen) == subnetLen {
+				networkID = nw.ID
+			} else if nw.SubnetIP == subnetIP && fmt.Sprintf("%d", nw.SubnetLen) == subnetLen {
 				networkID = nw.ID
 			}
 		}
@@ -147,16 +151,22 @@ func AllocAddressHandler(w http.ResponseWriter, r *http.Request, vars map[string
 	}
 
 	// Alloc addresses
-	addr, err := networkAllocAddress(nwCfg, allocReq.PreferredIPv4Address)
+	addr, err := networkAllocAddress(nwCfg, allocReq.PreferredIPv4Address, netutils.IsIPv6(allocReq.AddressPool))
 	if err != nil {
 		log.Errorf("Failed to allocate address. Err: %v", err)
 		return nil, err
 	}
 
+	var subnetLen uint
+	if isIPv6 {
+		subnetLen = nwCfg.IPv6SubnetLen
+	} else {
+		subnetLen = nwCfg.SubnetLen
+	}
 	// Build the response
 	aresp := AddressAllocResponse{
 		NetworkID:   allocReq.NetworkID,
-		IPv4Address: addr + "/" + fmt.Sprintf("%d", nwCfg.SubnetLen),
+		IPv4Address: addr + "/" + fmt.Sprintf("%d", subnetLen),
 	}
 
 	return aresp, nil

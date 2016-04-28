@@ -31,6 +31,7 @@ type ConfigEP struct {
 	AttachUUID  string
 	IPAddress   string
 	ServiceName string
+	IPv6Address string
 }
 
 // ConfigNetwork is a multi-destination isolated containment of endpoints
@@ -39,10 +40,12 @@ type ConfigNetwork struct {
 	Name string
 
 	// overrides for various functions when auto allocation is not desired
-	PktTagType string
-	PktTag     int
-	SubnetCIDR string
-	Gateway    string
+	PktTagType     string
+	PktTag         int
+	SubnetCIDR     string
+	Gateway        string
+	IPv6SubnetCIDR string
+	IPv6Gateway    string
 
 	// eps associated with the network
 	Endpoints []ConfigEP

@@ -43,17 +43,22 @@ const (
 // vlans with ovs. The state is stored as Json objects.
 type CfgNetworkState struct {
 	core.CommonState
-	Tenant      string        `json:"tenant"`
-	NetworkName string        `json:"networkName"`
-	PktTagType  string        `json:"pktTagType"`
-	PktTag      int           `json:"pktTag"`
-	ExtPktTag   int           `json:"extPktTag"`
-	SubnetIP    string        `json:"subnetIP"`
-	SubnetLen   uint          `json:"subnetLen"`
-	Gateway     string        `json:"gateway"`
-	EpCount     int           `json:"epCount"`
-	IPAllocMap  bitset.BitSet `json:"ipAllocMap"`
-	DNSServer   string        `json:"dnsServer"`
+	Tenant        string          `json:"tenant"`
+	NetworkName   string          `json:"networkName"`
+	PktTagType    string          `json:"pktTagType"`
+	PktTag        int             `json:"pktTag"`
+	ExtPktTag     int             `json:"extPktTag"`
+	SubnetIP      string          `json:"subnetIP"`
+	SubnetLen     uint            `json:"subnetLen"`
+	Gateway       string          `json:"gateway"`
+	EpCount       int             `json:"epCount"`
+	IPAllocMap    bitset.BitSet   `json:"ipAllocMap"`
+	DNSServer     string          `json:"dnsServer"`
+	IPv6Subnet    string          `json:"ipv6SubnetIP"`
+	IPv6SubnetLen uint            `json:"ipv6SubnetLen"`
+	IPv6Gateway   string          `json:"ipv6Gateway"`
+	IPv6AllocMap  map[string]bool `json:"ipv6AllocMap"`
+	IPv6LastHost  string          `json:"ipv6LastHost"`
 }
 
 // Write the state.

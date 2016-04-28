@@ -21,10 +21,14 @@ import (
 )
 
 type testSubnetInfo struct {
-	subnetIP  string
-	subnetLen uint
-	hostID    uint
-	hostIP    string
+	subnetIP      string
+	subnetLen     uint
+	hostID        uint
+	hostIP        string
+	ipv6Subnet    string
+	ipv6SubnetLen uint
+	ipv6HostID    string
+	ipv6HostIP    string
 }
 
 var testSubnets = []testSubnetInfo{
@@ -74,6 +78,68 @@ func TestGetIPNumber(t *testing.T) {
 			t.Fatalf("obtained ip %d doesn't match with expected ip %d \n",
 				hostID, te.hostID)
 		}
+	}
+}
+
+var testv6Subnets = []testSubnetInfo{
+	{ipv6Subnet: "2016:430::", ipv6SubnetLen: 64, ipv6HostID: "::254", ipv6HostIP: "2016:430::254"},
+	{ipv6Subnet: "babe:face::80", ipv6SubnetLen: 121, ipv6HostID: "::45", ipv6HostIP: "babe:face::c5"},
+	{ipv6Subnet: "2001::", ipv6SubnetLen: 100, ipv6HostID: "::2", ipv6HostIP: "2001::2"},
+}
+
+func TestGetSubnetIPv6(t *testing.T) {
+	for _, te := range testv6Subnets {
+		ipv6HostIP, err := GetSubnetIPv6(te.ipv6Subnet, te.ipv6SubnetLen, 128, te.ipv6HostID)
+		if err != nil {
+			t.Fatalf("error getting host ip from ipv6Subnet %s/%d for hostid %s - err '%s'",
+				te.ipv6Subnet, te.ipv6SubnetLen, te.ipv6HostID, err)
+		}
+		if ipv6HostIP != te.ipv6HostIP {
+			t.Fatalf("obtained ip %s doesn't match expected ip %s for ipv6Subnet %s/%d\n",
+				ipv6HostIP, te.ipv6HostIP, te.ipv6Subnet, te.ipv6SubnetLen)
+		}
+	}
+}
+
+var testInvalidv6Subnets = []testSubnetInfo{
+	{ipv6Subnet: "2016:430::", ipv6SubnetLen: 128, ipv6HostID: "::254"},
+	{ipv6Subnet: "babe:face::80", ipv6SubnetLen: 121, ipv6HostID: "::c5"},
+	{ipv6Subnet: "babe:face::80", ipv6SubnetLen: 121, ipv6HostID: "::105"},
+	{ipv6Subnet: "2001::", ipv6SubnetLen: 130, ipv6HostID: "::2", ipv6HostIP: "2001::2"},
+}
+
+func TestInvalidGetSubnetIPv6(t *testing.T) {
+	for _, te := range testInvalidSubnets {
+		_, err := GetSubnetIPv6(te.ipv6Subnet, te.ipv6SubnetLen, 128, te.ipv6HostID)
+		if err == nil {
+			t.Fatalf("Expecting error on invalid config subnet %s/%d for hostid %s",
+				te.ipv6Subnet, te.ipv6SubnetLen, te.ipv6HostID)
+		}
+	}
+}
+
+type testHostID struct {
+	hostID     string
+	nextHostID string
+}
+
+var testHostIDs = []testHostID{
+	{hostID: "", nextHostID: "::1"},         // verify initial case
+	{hostID: "::", nextHostID: "::2"},       // lasthost specifically set to 0
+	{hostID: "::4", nextHostID: "::5"},      // find next of 4
+	{hostID: "::4", nextHostID: "::6"},      // this time next of 4 should skip 5
+	{hostID: "::FFFF", nextHostID: "::1:0"}, // verifying the carryover case
+}
+
+func TestGetNextIPv6HostID(t *testing.T) {
+	var allocMap map[string]bool
+	for _, te := range testHostIDs {
+		nextHostID := GetNextIPv6HostID(te.hostID, allocMap)
+		if nextHostID != te.nextHostID {
+			t.Fatalf("obtained nextHostID %s doesn't match expected ID %s \n",
+				nextHostID, te.nextHostID)
+		}
+		ReserveIPv6HostID(nextHostID, &allocMap)
 	}
 }
 
